@@ -7,8 +7,8 @@ function Editable(props) {
 
   const submission = (e) => {
     e.preventDefault();
-    if (inputText && props.onSubmit) {
-      props.onSubmit(inputText);
+    if (inputText.trim() && props.onSubmit) {
+      props.onSubmit(inputText.trim());
       setInputText("");
     }
     setIsEditable(false);
@@ -27,13 +27,13 @@ function Editable(props) {
             placeholder={props.placeholder || props.text}
             onChange={(e) => setInputText(e.target.value)}
             autoFocus
-            className="border-2 border-indigo-400 focus:ring-2 focus:ring-indigo-300 rounded-xl outline-none text-base p-3 transition"
+            className="border-2 border-indigo-400 focus:ring-2 focus:ring-indigo-300 rounded-xl outline-none text-base p-3 transition-all duration-200 bg-white/90 placeholder-gray-400"
           />
 
           <div className="flex gap-3 items-center">
             <button
               type="submit"
-              className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 active:translate-y-[2px] transition-all"
+              className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 active:translate-y-[2px] transition-all shadow-md"
             >
               {props.buttonText || "Add"}
             </button>
@@ -46,7 +46,7 @@ function Editable(props) {
         </form>
       ) : (
         <p
-          className={`inline-block px-4 py-2 rounded-xl bg-gray-100 cursor-pointer hover:bg-gray-200 transition-all ${props.displayClass || ""}`}
+          className={`inline-block px-4 py-2 rounded-xl bg-gray-100 cursor-pointer hover:bg-gray-200 transition-all duration-200 shadow-sm text-gray-800 ${props.displayClass || ""}`}
           onClick={() => setIsEditable(true)}
         >
           {props.text}

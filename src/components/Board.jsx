@@ -35,7 +35,7 @@ const Board = ({
           </button>
 
           {open && (
-            <div className="absolute right-0 top-10 bg-white shadow-xl w-44 rounded-lg p-3 animate-scale">
+            <div className="absolute right-0 top-10 bg-white shadow-xl  relative w-44 rounded-lg p-3 animate-scale">
               <button
                 onClick={() => {
                   removeBoard();

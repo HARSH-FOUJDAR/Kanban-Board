@@ -2,156 +2,73 @@ import React, { useEffect, useState } from "react";
 import Board from "./components/Board";
 import Editable from "./components/Editable";
 
-function App() {
-  const [boards, setBoards] = useState(
-    JSON.parse(localStorage.getItem("prac-kanban")) || []
-  );
+export default function App() {
+  const [boards, setBoards] = useState(JSON.parse(localStorage.getItem("prac-kanban")) || []);
+  const [targetCard, setTargetCard] = useState({ bid: "", cid: "" });
 
-  const [targetCard, setTargetCard] = useState({
-    bid: "",
-    cid: "",
-  });
+  const addBoard = (name) => setBoards([...boards, { id: Date.now(), title: name, cards: [] }]);
+  const removeBoard = (id) => setBoards(boards.filter((b) => b.id !== id));
+  const addCard = (bid, title) =>
+    setBoards(
+      boards.map((b) => (b.id === bid ? { ...b, cards: [...b.cards, { id: Date.now(), title, labels: [], date: "", tasks: [] }] } : b))
+    );
+  const removeCard = (bid, cid) =>
+    setBoards(boards.map((b) => (b.id === bid ? { ...b, cards: b.cards.filter((c) => c.id !== cid) } : b)));
+  const updateCard = (bid, cid, card) =>
+    setBoards(boards.map((b) => (b.id === bid ? { ...b, cards: b.cards.map((c) => (c.id === cid ? card : c)) } : b)));
 
-  const addboardHandler = (name) => {
-    const tempBoards = [...boards];
-    tempBoards.push({
-      id: Date.now() + Math.random() * 2,
-      title: name,
-      cards: [],
-    });
-    setBoards(tempBoards);
-  };
-
-  const removeBoard = (id) => {
-    const index = boards.findIndex((item) => item.id === id);
-    if (index < 0) return;
-
-    const tempBoards = [...boards];
-    tempBoards.splice(index, 1);
-    setBoards(tempBoards);
-  };
-
-  const addCardHandler = (id, title) => {
-    const index = boards.findIndex((item) => item.id === id);
-    if (index < 0) return;
-
-    const tempBoards = [...boards];
-    tempBoards[index].cards.push({
-      id: Date.now() + Math.random() * 2,
-      title,
-      labels: [],
-      date: "",
-      tasks: [],
-    });
-    setBoards(tempBoards);
-  };
-
-  const removeCard = (bid, cid) => {
-    const index = boards.findIndex((item) => item.id === bid);
-    if (index < 0) return;
-
-    const tempBoards = [...boards];
-    const cards = tempBoards[index].cards;
-
-    const cardIndex = cards.findIndex((item) => item.id === cid);
-    if (cardIndex < 0) return;
-
-    cards.splice(cardIndex, 1);
-    setBoards(tempBoards);
-  };
-
+  const dragEntered = (bid, cid) => targetCard.cid !== cid && setTargetCard({ bid, cid });
   const dragEnded = (bid, cid) => {
-    let s_boardIndex, s_cardIndex, t_boardIndex, t_cardIndex;
-
-    s_boardIndex = boards.findIndex((item) => item.id === bid);
-    if (s_boardIndex < 0) return;
-
-    s_cardIndex = boards[s_boardIndex]?.cards?.findIndex(
-      (item) => item.id === cid
-    );
-    if (s_cardIndex < 0) return;
-
-    t_boardIndex = boards.findIndex((item) => item.id === targetCard.bid);
-    if (t_boardIndex < 0) return;
-
-    t_cardIndex = boards[t_boardIndex]?.cards?.findIndex(
-      (item) => item.id === targetCard.cid
-    );
-    if (t_cardIndex < 0) return;
-
-    const tempBoards = [...boards];
-    const sourceCard = tempBoards[s_boardIndex].cards[s_cardIndex];
-
-    tempBoards[s_boardIndex].cards.splice(s_cardIndex, 1);
-    tempBoards[t_boardIndex].cards.splice(t_cardIndex, 0, sourceCard);
-
-    setBoards(tempBoards);
+    const sBoardIndex = boards.findIndex((b) => b.id === bid);
+    const sCardIndex = boards[sBoardIndex]?.cards?.findIndex((c) => c.id === cid);
+    const tBoardIndex = boards.findIndex((b) => b.id === targetCard.bid);
+    const tCardIndex = boards[tBoardIndex]?.cards?.findIndex((c) => c.id === targetCard.cid);
+    if ([sBoardIndex, sCardIndex, tBoardIndex, tCardIndex].some((i) => i < 0)) return;
+    const temp = [...boards];
+    const [moved] = temp[sBoardIndex].cards.splice(sCardIndex, 1);
+    temp[tBoardIndex].cards.splice(tCardIndex, 0, moved);
+    setBoards(temp);
     setTargetCard({ bid: "", cid: "" });
   };
 
-  const dragEntered = (bid, cid) => {
-    if (targetCard.cid === cid) return;
-    setTargetCard({ bid, cid });
-  };
-
-  const updateCard = (bid, cid, card) => {
-    const index = boards.findIndex((item) => item.id === bid);
-    if (index < 0) return;
-
-    const tempBoards = [...boards];
-    const cards = tempBoards[index].cards;
-
-    const cardIndex = cards.findIndex((item) => item.id === cid);
-    if (cardIndex < 0) return;
-
-    tempBoards[index].cards[cardIndex] = card;
-    setBoards(tempBoards);
-  };
-
-  useEffect(() => {
-    localStorage.setItem("prac-kanban", JSON.stringify(boards));
-  }, [boards]);
+  useEffect(() => localStorage.setItem("prac-kanban", JSON.stringify(boards)), [boards]);
 
   return (
-    <div className="flex flex-col w-full h-screen bg-gray-100">
-      
-      {/* NAVBAR */}
-      <div className="bg-white sticky top-0 shadow-sm border-b py-6 px-8">
-        <h1 className="text-2xl font-semibold">Kanban Board</h1>
-      </div>
+    <div className="flex flex-col w-full h-screen bg-gray-50">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-slate-900 shadow-md border-b py-4 px-6 flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-[#fff]">Kanban Board</h1>
+      </header>
 
-      {/* SCROLLABLE BOARDS WRAPPER */}
-      <div className="flex-1 w-full h-full overflow-x-auto pt-5">
-        <div className="flex gap-6 px-10 w-fit h-full">
-
-          {boards.map((item) => (
+      {/* Boards wrapper */}
+      <main className="flex-1 overflow-x-auto py-4 px-6 bg-orange-50">
+        <div className="flex gap-4 w-fit max-h-[85vh] rounded-full mt-60">
+          {boards.map((b) => (
             <Board
-              key={item.id}
-              board={item}
-              addCard={addCardHandler}
-              removeBoard={() => removeBoard(item.id)}
+              key={b.id}
+              board={b}
+              addCard={addCard}
+              removeBoard={() => removeBoard(b.id)}
               removeCard={removeCard}
-              dragEnded={dragEnded}
               dragEntered={dragEntered}
+              dragEnded={dragEnded}
               updateCard={updateCard}
             />
           ))}
 
-          {/* ADD NEW BOARD */}
-          <div className="min-w-[280px]">
+          {/* Add new board */}
+          <div className="min-w-[260px]">
             <Editable
-              displayClass="bg-white shadow border rounded-lg text-center py-3 cursor-pointer hover:bg-gray-50"
-              editClass="bg-white shadow rounded-lg p-3"
+              displayClass="bg-indigo-100 text-indigo-700 shadow border border-indigo-200 rounded-lg text-center py-2 cursor-pointer hover:bg-indigo-200 font-medium"
+              editClass="bg-white shadow rounded-lg p-2"
               placeholder="Enter Board Name"
-              text="Add Board"
+              text="+ Add Board"
               buttonText="Add Board"
-              onSubmit={addboardHandler}
+              onSubmit={addBoard}
             />
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
-
-export default App;
