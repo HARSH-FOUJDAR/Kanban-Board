@@ -6,7 +6,7 @@ This project helps users organize tasks using drag-and-drop features and a clean
 ---
 
 ## 🚀 Live Demo  
-(Add link if deployed)
+(flourishing-cucurucho-d5df5b.netlify.app)
 
 ---
 
